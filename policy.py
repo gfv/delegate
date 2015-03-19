@@ -70,6 +70,7 @@ class PolicyManager:
             for param in policy.parameters:
                 result_string += "-p%s " % param
             result_string += policy.script + "\n"
+            print(result_string)
 
     def check_request(self, request):
         if request.script not in self.cmds:
