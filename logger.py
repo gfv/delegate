@@ -1,5 +1,6 @@
 __author__ = 'mihver1'
-import sys, time
+import sys
+import time
 
 
 class Logger:
@@ -14,8 +15,10 @@ class Logger:
             return
         result_string = "[%s]:%s:%s\n" % (time.strftime ("%Y-%m-%d %H:%M:%S %Z"), type_, message)
         self.writer.write(result_string)
+
     def log(self, message, type_="L", verbosity=0):
-        self (message, type_, verbosity)
+        self.__call__(message, type_, verbosity)
+
     def reopen(self):
         self.writer = sys.stderr if self.__name is None else open(self.__name, "a")
 

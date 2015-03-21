@@ -3,7 +3,7 @@ __author__ = 'm'
 
 class Policy:
 
-    def __init__(self, user="", group="", parameters=[], script=""):
+    def __init__(self, user="", group="", parameters=list(), script=""):
         self.user = user
         self.group = group
         self.parameters = parameters
