@@ -1,6 +1,6 @@
 __author__ = 'm'
 
-from policy import PolicyManager, Policy
+from policy import Policy
 import os
 
 
@@ -14,5 +14,5 @@ class PolicyExecutor:
         if self.policy_manager.check_request(request):
             pass
         else:
-            self.log.log("Failed to execute request", "E")
+            self.log("Failed to execute request", "E")
             return -1

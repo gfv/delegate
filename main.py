@@ -8,11 +8,7 @@ import signal
 import socket
 
 from logger import Logger
-
-
-config = {
-    'port': 2390
-}
+from config import config
 
 
 class Server:
@@ -143,12 +139,12 @@ class ServerSocket:
                     client, remote_addr = self.__socket.accept()
                 except BlockingIOError:
                     break
-                print ("accepted client [%s]: %s" % (remote_addr, client))
+                print("accepted client [%s]: %s" % (remote_addr, client))
                 ClientSocket(self.__log, self.__epoll, client, remote_addr)
         assert not events
 
 
-logger = Logger(verbosity=2)
+logger = Logger(verbosity=config["verbosity"])
 with Server(logger) as server:
     epoll = Epoll(logger)
     server_socket = ServerSocket(logger, epoll)
