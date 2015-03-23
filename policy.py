@@ -89,7 +89,7 @@ class PolicyManager:
                     else:
                         return True
             return False
-        else:
+        elif user_or_group.user:
             for policy in self.cmds[request.script]:
                 if user_or_group.name == policy.user:
                     if len(request.arguments) > 0:
@@ -98,6 +98,8 @@ class PolicyManager:
                         return False
                     else:
                         return True
+            return False
+        else:
             return False
 
 

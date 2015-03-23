@@ -12,7 +12,7 @@ class PolicyExecutor:
 
     def execute_request_or_die(self, request):
         if self.policy_manager.check_request(request):
-            pass
+            self.log
         else:
             self.log("Failed to execute request", "E")
             return -1
