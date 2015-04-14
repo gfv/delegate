@@ -2,18 +2,21 @@
 
 __author__ = 'burunduk3'
 
+import hashlib
 import itertools
 import select
 import signal
 import socket
 
 from logger import Logger
+from keys import KeyManager
 from config import config
 
 
 class Server:
-    def __init__(self, logger):
+    def __init__(self, logger, keys):
         self.__log = logger
+        self.__keys = keys
         self.__finish = False
         signal.signal(signal.SIGTERM, lambda signo, frame: self.__signal(signo))
         signal.signal(signal.SIGUSR1, lambda signo, frame: self.__signal(signo))
@@ -53,8 +56,9 @@ class Server:
 
 
 class Epoll:
-    def __init__(self, logger):
+    def __init__(self, logger, keys):
         self.__log = logger
+        self.__keys = keys
         self.__epoll = select.epoll(flags=select.EPOLL_CLOEXEC)
         self.__callback = {}
 
@@ -84,14 +88,15 @@ class Epoll:
 
 
 class ClientSocket:
-    def __init__(self, logger, epoll, connection, remote_addr, connector):
+    def __init__(self, logger, keys, epoll, connection, remote_addr, connector):
         self.__log = logger
+        self.__keys = keys
         self.__epoll = epoll
         self.__socket = connection
         self.__remote_addr = remote_addr
         self.__buffer = b''
         self.__write_buffer = []
-        self.__connector = connector(self)
+        self.__connector = connector(logger, keys, self)
 
         self.__socket.setblocking(False)
         self.__epoll.register(self.__socket, lambda events: self.__handle(events))
@@ -140,8 +145,9 @@ class ClientSocket:
 
 
 class ServerSocket:
-    def __init__(self, logger, epoll, connector):
+    def __init__(self, logger, keys, epoll, connector):
         self.__log = logger
+        self.__keys = keys
         self.__epoll = epoll
         self.__connector = connector
         self.__socket = socket.socket(
@@ -161,31 +167,61 @@ class ServerSocket:
                 except BlockingIOError:
                     break
                 print("accepted client [%s]: %s" % (remote_addr, client))
-                ClientSocket(self.__log, self.__epoll, client, remote_addr, self.__connector)
+                ClientSocket(self.__log, self.__keys, self.__epoll, client, remote_addr, self.__connector)
         assert not events
 
 
-salt = "ahThiodai0ohG1phokoo"
+salt = b"ahThiodai0ohG1phokoo"
+salt2 = b"Aej1ohv8Naish5Siec3U"
+salt3 = "gohKailieHae3ko9tee0"
+salt_random = b""
 connection_id = 0
+keys = None
 
 class Connector:
-    def __init__(self, socket):
+    def __init__(self, log, keys, socket):
         global connection_id
         self.__id = connection_id
         connection_id += 1
+        self.__log = log
+        self.__keys = keys
         self.__socket = socket
         self.__local_id = 0
+        self.__hash = None
+        self.__keys = keys
     def __call__(self, command):
+        global salt, salt2
         command = command.split()
-        if command[0] == b'test':
+        if command[0] == b'test' and len(command) == 1:
             self.__socket.write(b"test ok\n")
+        elif command[0] == b'hello' and len(command) == 1:
+            self.__hash = hashlib.sha256(
+                salt + salt_random + (":%d_%d" % (self.__id, self.__local_id)).encode("ascii")
+            ).hexdigest().encode("ascii")
+            self.__local_id += 1
+            self.__socket.write(b"hello " + self.__hash + b"\n")
+        elif command[0] == b"run" and len(command) > 3:
+            command_key, command_hash = command[1:3]
+            command_run = command[3:]
+            real_key = self.__keys.get_key(command_key.decode('iso8859-1')).encode("ascii")
+            real_hash = hashlib.sha256(
+               real_key + b':' + salt2 + b':' + self.__hash + b':' + b'%'.join(command_run)
+            ).hexdigest().encode("ascii")
+            if command_hash != real_hash:
+                self.__socket.write(b'unauthorized\n')
+            else:
+                self.__socket.write(b'started\n')
+                self.__log("TODO: check and run " + b' '.join(command).decode("iso8859-1"))
         else:
             self.__socket.write(b"unknown command: " + command[0] + b"\n")
 
 
 logger = Logger(verbosity=config["verbosity"])
-with Server(logger) as server:
-    epoll = Epoll(logger)
-    server_socket = ServerSocket(logger, epoll, Connector)
+with open('/dev/random', 'rb') as f:
+    salt_random = f.read(32)
+keys = KeyManager(salt3, logger)
+with Server(logger, keys) as server:
+    epoll = Epoll(logger, keys)
+    server_socket = ServerSocket(logger, keys, epoll, Connector)
     server.run([lambda: epoll.poll(timeout=0.5)])
 
