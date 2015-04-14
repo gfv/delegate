@@ -39,7 +39,7 @@ class Server:
                     if self.__finish:
                         break
                     actions = start_actions
-                logger("actions: %s" % actions, verbosity=5)
+                self.__log("actions: %s" % actions, verbosity=5)
                 continuations = [action() for action in actions]
                 actions = itertools.chain(*filter(lambda x: x is not None, continuations))
         except KeyboardInterrupt:
@@ -189,6 +189,7 @@ class Connector:
         self.__local_id = 0
         self.__hash = None
         self.__keys = keys
+
     def __call__(self, command):
         global salt, salt2
         command = command.split()
@@ -200,13 +201,14 @@ class Connector:
             ).hexdigest().encode("ascii")
             self.__local_id += 1
             self.__socket.write(b"hello " + self.__hash + b"\n")
-        elif command[0] == b"run" and len(command) > 3:
+        elif command[0] == b"run" and len(command) > 3 and self.__hash is not None:
             command_key, command_hash = command[1:3]
             command_run = command[3:]
             real_key = self.__keys.get_key(command_key.decode('iso8859-1')).encode("ascii")
             real_hash = hashlib.sha256(
-               real_key + b':' + salt2 + b':' + self.__hash + b':' + b'%'.join(command_run)
+                real_key + b':' + salt2 + b':' + self.__hash + b':' + b'%'.join(command_run)
             ).hexdigest().encode("ascii")
+            self.__hash = None
             if command_hash != real_hash:
                 self.__socket.write(b'unauthorized\n')
             else:
