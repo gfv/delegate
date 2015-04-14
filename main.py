@@ -123,7 +123,7 @@ class ClientSocket:
 
                 data = data.split(b'\n')
                 for chunk in data[:-1]:
-                    self.execute(self.__buffer + chunk)
+                    yield lambda: self.execute(self.__buffer + chunk)
                     self.__buffer = b''
                 self.__buffer = data[-1]
 
@@ -195,6 +195,8 @@ class Connector:
     def __call__(self, command):
         global salt, salt2
         command = command.split()
+        if len(command) == 0:
+            return
         if command[0] == b'test' and len(command) == 1:
             self.__socket.write(b"test ok\n")
         elif command[0] == b'hello' and len(command) == 1:
@@ -216,6 +218,8 @@ class Connector:
             else:
                 self.__socket.write(b'started\n')
                 self.__log("TODO: check and run " + b' '.join(command_run).decode("iso8859-1"))
+                self.__socket.write(b'test log, no action\n')
+                self.__socket.write(b'FINISH\n')
         else:
             self.__socket.write(b"unknown command: " + command[0] + b"\n")
 
@@ -227,5 +231,6 @@ keys = KeyManager(salt3, logger)
 with Server(logger, keys) as server:
     epoll = Epoll(logger, keys)
     server_socket = ServerSocket(logger, keys, epoll, Connector)
+    logger("server started")
     server.run([lambda: epoll.poll(timeout=0.5)])
 

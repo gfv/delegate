@@ -44,7 +44,7 @@ assert started == b'started'
 print("[request send]")
 while True:
     log = query()
-    if log == 'FINISH':
+    if log == b'FINISH':
         break
     print(log.decode('iso8859-1'))
 
