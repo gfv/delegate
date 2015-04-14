@@ -108,9 +108,11 @@ class ClientSocket:
             while True:
                 try:
                     data = self.__socket.recv(4096)
+                except ConnectionResetError:
+                    data = None
                 except BlockingIOError:
                     break
-                if not data:
+                if data is None or not data:
                     self.__log("connection #%d closed" % self.__socket.fileno())
                     self.__epoll.unregister(self.__socket)
                     self.__socket.close()
@@ -211,7 +213,7 @@ class Connector:
                 self.__socket.write(b'unauthorized\n')
             else:
                 self.__socket.write(b'started\n')
-                self.__log("TODO: check and run " + b' '.join(command).decode("iso8859-1"))
+                self.__log("TODO: check and run " + b' '.join(command_run).decode("iso8859-1"))
         else:
             self.__socket.write(b"unknown command: " + command[0] + b"\n")
 
