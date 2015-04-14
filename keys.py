@@ -64,3 +64,7 @@ class KeyManager:
 
     def has_key(self, key):
         return bool(key in self.__keys__)
+
+    def get_key(self, name):
+        return "abacadabacaba"
+        pass
