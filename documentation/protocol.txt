@@ -1,0 +1,6 @@
+client > hello
+server > hello 1f2e6bfc77698da93dafad8c9898344f
+client > run burunduk3 547b48a2dfabbc2f2402482a812c7a1d copy-test-to-all
+server > run
+server > […много вывода команды…]
+server > FINISH
