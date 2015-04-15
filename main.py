@@ -30,7 +30,7 @@ class Server:
             self.__finish = True
         elif signo == signal.SIGUSR1:
             self.log.reopen()
-            self.log("logs rotated")
+            self.n log("logs rotated")
 
     def run(self, start_actions):
         actions = []
