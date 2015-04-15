@@ -26,11 +26,11 @@ class Server:
 
     def __signal(self, signo):
         if signo == signal.SIGTERM:
-            self.__log("[SIGTERM]")
+            self.log("[SIGTERM]")
             self.__finish = True
         elif signo == signal.SIGUSR1:
-            self.__log.reopen()
-            self.__log("logs rotated")
+            self.log.reopen()
+            self.log("logs rotated")
 
     def run(self, start_actions):
         actions = []
@@ -218,7 +218,7 @@ class Connector(Module):
         elif command[0] == b"run" and len(command) > 3 and self.__hash is not None:
             command_key, command_hash = command[1:3]
             command_run = command[3:]
-            real_key = self._server.keys.get_key(command_key.decode('iso8859-1')).encode("ascii")
+            real_key = self._server.keys.get_user_key(command_key.decode('iso8859-1')).encode("ascii")
             real_hash = hashlib.sha256(
                 real_key + b':' + salt2 + b':' + self.__hash + b':' + b'%'.join(command_run)
             ).hexdigest().encode("ascii")
