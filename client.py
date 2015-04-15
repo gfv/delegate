@@ -24,6 +24,7 @@ def query(data = None):
     if b'\n' not in server_buffer:
         while True:
             data = server.recv(2048)
+            assert len(data) > 0
             server_buffer += data
             if b'\n' in data:
                 break
@@ -34,7 +35,7 @@ hello = query(b'hello')
 result, key = hello.split()
 assert result == b'hello'
 
-command = [b'test']
+command = [b'test', b'123']
 command_hash = hashlib.sha256(
    key_value + b':' + salt2 + b':' + key + b':' + b'%'.join(command)
 ).hexdigest().encode("ascii")
@@ -46,5 +47,7 @@ while True:
     log = query()
     if log == b'FINISH':
         break
+    if log.startswith(b'LOG: '):
+        log = log[5:]
     print(log.decode('iso8859-1'))
 
