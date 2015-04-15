@@ -1,69 +1,87 @@
-__author__ = 'm'
-import hashlib
-
-
-class Key:
-    def __init__(self):
-        self.name = None
-        self.key = None
-        self.type = None
-
-
-class Subject:
-    def __init__(self):
-        self.group = False
-        self.user = False
-        self.name = None
+__author__ = 'mihver1'
 
 
 class KeyManager:
-    def __init__(self, salt, logger):
-        self.__salt__ = salt  # not used yet
+    def __init__(self, logger):
         self.log = logger
-        self.__keys__ = dict()
         self.__users__ = dict()
         self.__groups__ = dict()
 
-    def add_key(self, key, type_, name):
-        hashed_key = str(hashlib.sha256("%s%s" % (str(key), str(self.__salt__))).hexdigest())
-        key_to_store = Key()
-        key_to_store.key = hashed_key
-        if type_ != "group" and type_ != "user":
-            self.log("Can't recognise type of added key", "E")
-            return -1
-        key_to_store.type = type_
-        if name == "" or name is None:
-            self.log("Empty key name", "E")
-            return -1
-        key_to_store.name = name
-        self.__keys__[hashed_key] = key_to_store
-        if type_ == "user":
-            self.__users__[name] = key_to_store
-        elif type_ == "group":
-            self.__groups__[name] = key_to_store
+    def add_user(self, name, secret):
+        if name in self.__users__:
+            self.log("Already has user %s" % name, "W")
+            return False
         else:
-            self.log("WTF just happened?", "E", 0)
-            return -1
-        return 0
+            self.log("Added new user %s" % name)
+            self.__users__["name"] = {"key": secret}
+            return True
 
-    def has_user(self, user):
-        return bool(user in self.__users__)
+    def del_user(self, name):
+        if name in self.__users__:
+            if "groups" in self.__users__[name]:
+                for i in self.__users__[name]["groups"]:
+                    self.__groups__[i].remove(name)
+            self.__users__.__delitem__(name)
+            self.log("Removed key for %s" % name)
+        else:
+            self.log("Can't remove non-existing user %s" % name, "E")
 
-    def has_group(self, group):
-        return bool(group in self.__groups__)
+    def get_user_key(self, name):
+        if name in self.__users__:
+            self.log("Requested key for %s" % name, "N", 3)
+            return self.__users__[name]["key"]
+        else:
+            self.log("Requested key for non-existing %s" % name, "E")
+            return None
 
-    def get_subject_by_key(self, key):
-        result = Subject()
-        if key in self.__keys__:
-            result.name = self.__keys__[key].name
-            if self.__keys__[key].name in self.__users__:
-                result.user = True
-            elif self.__keys__[key].name in self.__groups__:
-                result.group = True
-        return result
+    def get_users(self):
+        return [str(x) for x in self.__users__.keys()]
 
-    def has_key(self, key):
-        return bool(key in self.__keys__)
+    def add_group(self, name):
+        if name in self.__groups__:
+            self.log("Already has a group %s" % name, "E")
+            return False
+        else:
+            self.__groups__[name] = list()
+            return True
 
-    def get_key(self, name):
-        return "abacadabacaba"
+    def add_group_member(self, username, groupname):
+        if username in self.__users__:
+            if groupname in self.__groups__:
+                self.__groups__[groupname].append(username)
+                if "groups" not in self.__users__[username]:
+                    self.__users__[username]["groups"] = list()
+                self.__users__[username]["groups"].append(groupname)
+                self.log("Added %s to %s" % (username, groupname))
+                return True
+            else:
+                self.log("Has no group %s" % groupname)
+                return False
+        else:
+            self.log("Has no user %s" % username)
+            return False
+
+    def remove_group_member(self, username, groupname):
+        if username in self.__users__:
+            if groupname in self.__groups__:
+                if username in self.__groups__[groupname]:
+                    self.log("Removing %s from %s" % (username, groupname), "N")
+                    self.__users__[username]["groups"].remove(groupname)
+                    self.__groups__[groupname].remove(username)
+                    return True
+                else:
+                    self.log("Can't remove non-member %s from %s" % (username, groupname), "E")
+            else:
+                self.log("Can't remove from non-existing group %s" % groupname, "E")
+        else:
+            self.log("Can't remove non-existing user %s" % username, "E")
+        return False
+
+    def get_group_members(self, groupname):
+        if groupname in self.__groups__:
+            self.log("Requested group members for %s" % groupname, "N", 3)
+            return self.__groups__[groupname]
+        else:
+            self.log("Requested group members for non-existing %s" % groupname, "E")
+            return None
+
