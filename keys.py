@@ -13,7 +13,7 @@ class KeyManager:
             return False
         else:
             self.log("Added new user %s" % name)
-            self.__users__["name"] = {"key": secret}
+            self.__users__[name] = {"key": secret}
             return True
 
     def del_user(self, name):

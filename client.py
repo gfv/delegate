@@ -6,7 +6,7 @@ import socket
 target = "127.0.0.1:2390"
 salt2 = b"Aej1ohv8Naish5Siec3U";
 key_id = b"burunduk3";
-key_value = b"abacadabacaba";
+key_value = b"abacabadabacaba";
 
 host, port = target.split(':', 1)
 port = int(port)
