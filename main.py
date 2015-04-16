@@ -10,7 +10,7 @@ import socket
 
 from logger import Logger
 from keys import KeyManager
-from policy import PolicyManager
+from policy import PolicyManager, Policy
 from config import config
 
 
@@ -122,6 +122,7 @@ class Epoll(Module):
 class ClientSocket(Module):
     def __init__(self, server, connection, remote_addr, connector):
         super().__init__(server)
+        self.__connected = True
         self.__socket = connection
         self.__remote_addr = remote_addr
         self.__buffer = b''
@@ -143,9 +144,7 @@ class ClientSocket(Module):
                 except BlockingIOError:
                     break
                 if data is None or not data:
-                    self._log("connection #%d closed" % self.__socket.fileno())
-                    self._server.epoll.unregister(self.__socket)
-                    self.__socket.close()
+                    self.disconnect()
                     break
                 assert data
                 self._log("received from socket#%d: %s" % (self.__socket.fileno(), ' '.join('%02x' % x for x in data)),
@@ -160,7 +159,26 @@ class ClientSocket(Module):
         if events & select.EPOLLOUT:
             assert len(self.__write_buffer) == 0
             events &= ~ select.EPOLLOUT
+
+        if events & select.EPOLLERR:
+            self.disconnect()
+            events &= ~ select.EPOLLERR
+
+        if events & select.EPOLLHUP:
+            self.disconnect()
+            events &= ~ select.EPOLLHUP
+
+        if events:
+            print("unhandled poll events: 0x%04x\n" % events)
         assert not events
+
+    def disconnect(self):
+        if not self.__connected:
+            return
+        self._log("connection #%d closed" % self.__socket.fileno())
+        self._server.epoll.unregister(self.__socket)
+        self.__socket.close()
+        self.__connected = False
 
     def write(self, data):
         if self.__write_buffer:
@@ -237,7 +255,6 @@ class Connector(Module):
         self.__hash = None
         if command_hash != real_hash:
             return self.__socket.write(b'unauthorized\n')
-        self.__socket.write(b'started\n')
         self._server.queue.append(Request(command_key, command_run[0], command_run[1:], self.__socket))
 
     def __call__(self, command):
@@ -277,6 +294,10 @@ class RequestQueue(Module):
         yield lambda: self.__run(request)
     def __run(self, request):
         self.__active = request
+        access = self._server.policy.check_request(request)
+        if not access:
+            request.output.write(b'access_denied\n')
+        request.output.write(b'started\n')
         self._log("TODO: check and run " + (request.script + b' ' + b' '.join(request.arguments)).decode("iso8859-1"))
         request.output.write(b'LOG: test log, no action\n')
         request.output.write(b'FINISH\n')
@@ -287,8 +308,9 @@ logger = Logger(verbosity=config["verbosity"])
 with open('/dev/random', 'rb') as f:
     salt_random = f.read(32)
 keys = KeyManager(logger)
-keys.add_user('burunduk3', 'abacabadabacaba')
 policy = PolicyManager(keys, logger)
+keys.add_user('burunduk3', 'abacabadabacaba')
+policy.add_policy(Policy(user="burunduk3", parameters=["ALLOW_ARGUMENTS"], script='test'))
 with Server(logger, keys, policy) as server:
     epoll, queue = Epoll(server), RequestQueue(server)
     server_socket = ServerSocket(server, Connector)

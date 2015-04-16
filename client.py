@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import hashlib
-import socket
+import hashlib, socket, sys
 
 target = "127.0.0.1:2390"
 salt2 = b"Aej1ohv8Naish5Siec3U";
 key_id = b"burunduk3";
 key_value = b"abacabadabacaba";
+# key_value = b"invalid_password";
 
 host, port = target.split(':', 1)
 port = int(port)
@@ -37,10 +37,12 @@ assert result == b'hello'
 
 command = [b'test', b'123']
 command_hash = hashlib.sha256(
-   key_value + b':' + salt2 + b':' + key + b':' + b'%'.join(command)
+    key_value + b':' + salt2 + b':' + key + b':' + b'%'.join(command)
 ).hexdigest().encode("ascii")
 started = query(b'run ' + key_id + b' ' + command_hash + b' ' + b' '.join(command))
-assert started == b'started'
+if started != b'started':
+    print("run fail: %s" % started.decode('iso8859-1'), file=sys.stderr)
+    sys.exit(1)
 
 print("[request send]")
 while True:
