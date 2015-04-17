@@ -3,4 +3,4 @@ burunduk3 : abacabadabacaba
 guest: 12345adsa
 group sysadm : mihver1 burunduk3
 group nobody :
-group all : mihver1 burunduk3
+group all : mihver1 burunduk3 guest
