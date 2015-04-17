@@ -26,17 +26,17 @@ class PolicyManager:
         ok_script = False
 
         if policy.user is not None:
-            if not self.key_manager.has_user(policy.user):
+            if self.key_manager.get_user_key(policy.user) is not None:
                 self.log("Can not find key for user %s" % str(policy.user), "E")
                 return -1
             else:
                 ok_user = True
-        if policy.group is not None:
-            if not self.key_manager.has_group(policy.group):
-                self.log("Can not find key for group %s" % str(policy.group), "E")
-                return -1
-            else:
-                ok_group = True
+        #if policy.group is not None:
+        #    if not self.key_manager.has_group(policy.group):
+        #        self.log("Can not find key for group %s" % str(policy.group), "E")
+        #        return -1
+        #    else:
+        ok_group = True
         if ok_user and ok_group:
             self.log("Ambiguous rule. Use either user or group.", "E")
             return -1
