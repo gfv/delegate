@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from config_loader import ConfigLoader
 
 __author__ = 'burunduk3'
 
@@ -394,7 +395,10 @@ with open('/dev/random', 'rb') as f:
 
 keys = KeyManager(logger)
 policy = PolicyManager(keys, logger)
-
+loader = ConfigLoader(logger,"users", "policies", policy, keys)
+loader.read()
+#policy.dump_policies()
+logger(keys.get_users())
 # keys.add_user(b'burunduk3', b'abacabadabacaba')
 # r = policy.add_policy(Policy(user=b"burunduk3", parameters=["ALLOW_ARGUMENTS"], script=b'test'))
 
@@ -403,4 +407,5 @@ with Server(logger, keys, policy) as server:
     server_socket = ServerSocket(server, Connector)
     logger("server started")
     server.run()
+#    pass
 

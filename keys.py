@@ -93,3 +93,5 @@ class KeyManager:
             self.log("Requested group members for non-existing %s" % groupname, "E")
             return None
 
+    def has_group(self, groupname):
+        return groupname in self.__groups__

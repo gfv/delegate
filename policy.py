@@ -59,9 +59,9 @@ class PolicyManager:
     def dump_policies(self):
         for policy in self.policies:
             result_string = ""
-            if policy.user != "":
+            if policy.user is not None:
                 result_string += "-u %s " % policy.user
-            if policy.group != "":
+            if policy.group is not None:
                 result_string += "-g %s " % policy.group
             for param in policy.parameters:
                 result_string += "-p%s " % param
