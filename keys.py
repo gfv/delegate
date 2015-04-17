@@ -34,6 +34,14 @@ class KeyManager:
             self.log("Requested key for non-existing %s" % name, "E")
             return None
 
+    def get_user_groups(self, name):
+        if name in self.__users__:
+            self.log("Requested groups for %s" % name, "N", 3)
+            if "groups" in self.__users__[name]:
+                return self.__users__[name]["groups"]
+            else:
+                return None
+
     def get_users(self):
         return [str(x) for x in self.__users__.keys()]
 

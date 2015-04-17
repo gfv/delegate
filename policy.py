@@ -3,7 +3,7 @@ __author__ = 'm'
 
 class Policy:
 
-    def __init__(self, user="", group="", parameters=list(), script=""):
+    def __init__(self, user=None, group=None, parameters=list(), script=""):
         self.user = user
         self.group = group
         self.parameters = parameters
@@ -25,25 +25,25 @@ class PolicyManager:
         ok_group = False
         ok_script = False
 
-        if policy.user != "":
+        if policy.user is not None:
             if not self.key_manager.has_user(policy.user):
-                self.log.log("Can not find key for user %s" % str(policy.user), "E")
+                self.log("Can not find key for user %s" % str(policy.user), "E")
                 return -1
             else:
                 ok_user = True
-        if policy.group != "":
+        if policy.group is not None:
             if not self.key_manager.has_group(policy.group):
-                self.log.log("Can not find key for group %s" % str(policy.group), "E")
+                self.log("Can not find key for group %s" % str(policy.group), "E")
                 return -1
             else:
                 ok_group = True
         if ok_user and ok_group:
-            self.log.log("Ambiguous rule. Use either user or group.", "E")
+            self.log("Ambiguous rule. Use either user or group.", "E")
             return -1
         if policy.script != "":
             ok_script = True
         else:
-            self.log.log("You should specify script to launch", "E")
+            self.log("You should specify script to launch", "E")
             return -1
         if not ok_script:
             if policy.user in self.users:
@@ -74,32 +74,25 @@ class PolicyManager:
 
     def check_request(self, request):
         if request.script not in self.cmds:
+            self.log("Can't check execution policies for non-existing script %s" % request.script, "E")
             return False
-        key_to_check = request.signed_with
-        if not self.key_manager.has_key(key_to_check):
-            return False
-        user_or_group = self.key_manager.get_subject_by_key(key_to_check)
-        if user_or_group.group:
-            for policy in self.cmds[request.script]:
-                if user_or_group.name == policy.group:
-                    if len(request.arguments) > 0:
-                        if "ALLOW_ARGUMENTS" in policy.parameters:
-                            return True
-                        return False
-                    else:
-                        return True
-            return False
-        elif user_or_group.user:
-            for policy in self.cmds[request.script]:
-                if user_or_group.name == policy.user:
-                    if len(request.arguments) > 0:
-                        if "ALLOW_ARGUMENTS" in policy.parameters:
-                            return True
-                        return False
-                    else:
-                        return True
-            return False
+        user_to_check = request.signed_with
+        cmd_to_check = request.script
+        if cmd_to_check in self.cmds:
+            self.log("Checking permissions to execute %s" % cmd_to_check, "N", 3)
+            policy = self.cmds[cmd_to_check]
+            if user_to_check == policy.user:
+                return policy
+            elif policy.group is not None:
+                groups = self.key_manager.get_user_groups(user_to_check)
+                if policy.group in groups:
+                    return policy
+                else:
+                    return False
+            else:
+                return False
         else:
+            self.log("Can't check permissions for non-existing scripts %s" % cmd_to_check, "E")
             return False
 
 

@@ -356,17 +356,17 @@ class RequestQueue(Module):
         self.__active = request
         access = self._server.policy.check_request(request)
         # TODO uncomment check!
-        # if not access:
-        #     request.output.write(b'access_denied\n')
+        if access is False:
+            request.output.write(b'access_denied\n')
         request.output.write(b'started\n')
 
         request.process = subprocess.Popen(
-            args = [request.script] + request.arguments,
-            executable = '/bin/echo',
-            stdin = subprocess.DEVNULL,
-            stdout = subprocess.PIPE,
-            stderr = subprocess.PIPE,
-            cwd = '/'
+            args=[request.script] + request.arguments,
+            executable='/bin/echo',
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd='/'
         )
         request.data = b''
         request.stdout = request.process.stdout.detach()
@@ -390,7 +390,7 @@ with open('/dev/random', 'rb') as f:
 keys = KeyManager(logger)
 policy = PolicyManager(keys, logger)
 keys.add_user('burunduk3', 'abacabadabacaba')
-# policy.add_policy(Policy(user="burunduk3", parameters=["ALLOW_ARGUMENTS"], script='test'))
+policy.add_policy(Policy(user="burunduk3", parameters=["ALLOW_ARGUMENTS"], script='test'))
 with Server(logger, keys, policy) as server:
     epoll, queue = Epoll(server), RequestQueue(server)
     server_socket = ServerSocket(server, Connector)
