@@ -388,12 +388,16 @@ class RequestQueue(Module):
 
 
 logger = Logger(verbosity=config["verbosity"])
+
 with open('/dev/random', 'rb') as f:
     salt_random = f.read(32)
+
 keys = KeyManager(logger)
 policy = PolicyManager(keys, logger)
-keys.add_user(b'burunduk3', b'abacabadabacaba')
+
+# keys.add_user(b'burunduk3', b'abacabadabacaba')
 # r = policy.add_policy(Policy(user=b"burunduk3", parameters=["ALLOW_ARGUMENTS"], script=b'test'))
+
 with Server(logger, keys, policy) as server:
     epoll, queue = Epoll(server), RequestQueue(server)
     server_socket = ServerSocket(server, Connector)

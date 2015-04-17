@@ -1,0 +1,3 @@
+-g sysadm -pALLOW_ARGUMENTS test
+-u mihver1 test_date
+-u burunduk3 test_date2

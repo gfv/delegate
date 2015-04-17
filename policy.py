@@ -3,7 +3,7 @@ __author__ = 'm'
 
 class Policy:
 
-    def __init__(self, user=None, group=None, parameters=list(), script=""):
+    def __init__(self, user=None, group=None, parameters=list(), script=None):
         self.user = user
         self.group = group
         self.parameters = parameters
@@ -23,30 +23,24 @@ class PolicyManager:
     def add_policy(self, policy):
         ok_user = False
         ok_group = False
-        ok_script = False
-
         if policy.user is not None:
             if self.key_manager.get_user_key(policy.user) is None:
                 self.log("Can not find key for user %s" % str(policy.user), "E")
-                return -1
+                return False
             else:
                 ok_user = True
-        #if policy.group is not None:
-        #    if not self.key_manager.has_group(policy.group):
-        #        self.log("Can not find key for group %s" % str(policy.group), "E")
-        #        return -1
-        #    else:
-        # ok_group = True
+        if policy.group is not None:
+            if not self.key_manager.has_group(policy.group):
+                self.log("Can not find key for group %s" % str(policy.group), "E")
+                return False
+            else:
+                ok_group = True
         if ok_user and ok_group:
             self.log("Ambiguous rule. Use either user or group.", "E")
-            return -1
-        if policy.script != "":
-            ok_script = True
-        else:
+            return False
+        if policy.script is None:
             self.log("You should specify script to launch", "E")
-            return -1
-        if not ok_script:
-            return -1
+            return False
         if policy.user in self.users:
             self.users[policy.user].append(policy)
         else:
