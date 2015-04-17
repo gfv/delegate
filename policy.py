@@ -26,7 +26,7 @@ class PolicyManager:
         ok_script = False
 
         if policy.user is not None:
-            if self.key_manager.get_user_key(policy.user) is not None:
+            if self.key_manager.get_user_key(policy.user) is None:
                 self.log("Can not find key for user %s" % str(policy.user), "E")
                 return -1
             else:
@@ -36,7 +36,7 @@ class PolicyManager:
         #        self.log("Can not find key for group %s" % str(policy.group), "E")
         #        return -1
         #    else:
-        ok_group = True
+        # ok_group = True
         if ok_user and ok_group:
             self.log("Ambiguous rule. Use either user or group.", "E")
             return -1
@@ -46,19 +46,21 @@ class PolicyManager:
             self.log("You should specify script to launch", "E")
             return -1
         if not ok_script:
-            if policy.user in self.users:
-                self.users[policy.user].append(policy)
-            else:
-                self.users[policy.user] = [policy]
-            if policy.group in self.groups:
-                self.groups[policy.group].append(policy)
-            else:
-                self.groups[policy.group] = [policy]
-            if policy.script in self.cmds:
-                self.cmds[policy.script].append(policy)
-            else:
-                self.cmds[policy.script] = [policy]
-            self.policies.append(policy)
+            return -1
+        if policy.user in self.users:
+            self.users[policy.user].append(policy)
+        else:
+            self.users[policy.user] = [policy]
+        if policy.group in self.groups:
+            self.groups[policy.group].append(policy)
+        else:
+            self.groups[policy.group] = [policy]
+        if policy.script in self.cmds:
+            self.cmds[policy.script].append(policy)
+        else:
+            self.cmds[policy.script] = [policy]
+        self.policies.append(policy)
+        return True
 
     def dump_policies(self):
         for policy in self.policies:
@@ -73,26 +75,19 @@ class PolicyManager:
             print(result_string)
 
     def check_request(self, request):
-        if request.script not in self.cmds:
-            self.log("Can't check execution policies for non-existing script %s" % request.script, "E")
-            return False
         user_to_check = request.signed_with
         cmd_to_check = request.script
-        if cmd_to_check in self.cmds:
-            self.log("Checking permissions to execute %s" % cmd_to_check, "N", 3)
-            policy = self.cmds[cmd_to_check]
+        self.log("Checking permissions for user %s to execute %s" % (user_to_check, cmd_to_check), "N", 2)
+        if cmd_to_check not in self.cmds:
+            self.log("Can't check permissions for non-existing scripts %s" % cmd_to_check, "E")
+            return False
+        for policy in self.cmds[cmd_to_check]:
             if user_to_check == policy.user:
                 return policy
             elif policy.group is not None:
                 groups = self.key_manager.get_user_groups(user_to_check)
                 if policy.group in groups:
                     return policy
-                else:
-                    return False
-            else:
-                return False
-        else:
-            self.log("Can't check permissions for non-existing scripts %s" % cmd_to_check, "E")
-            return False
-
+        self.log("No actual policy rule found", "N", 2)
+        return False
 

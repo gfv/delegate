@@ -256,10 +256,10 @@ class Connector(Module):
         self.__keys = keys
 
     def __run(self, command_key, command_hash, command_run):
-        user_key = self._server.keys.get_user_key(command_key.decode('iso8859-1'))
+        user_key = self._server.keys.get_user_key(command_key)
         if user_key is None:
             return self.__socket.write(b'unauthorized\n')
-        real_key = user_key.encode("ascii")
+        real_key = user_key
         real_hash = hashlib.sha256(
             real_key + b':' + salt2 + b':' + self.__hash + b':' + b'%'.join(command_run)
         ).hexdigest().encode("ascii")
@@ -325,9 +325,10 @@ class RequestQueue(Module):
     def run_next(self):
         if self.__active is not None:
             finished = self.__active.process.poll()
-            self._log('subprocess poll: %s' % str(finished))
             if finished is None:
                 return
+            self._log('subprocess poll: %s' % str(finished))
+            self._server.wake()
             self.__communicate()
             if self.__active.data:
                 self.__active.output.write(self.__active.data + b'%[noeoln]\n')
@@ -358,6 +359,8 @@ class RequestQueue(Module):
         # TODO uncomment check!
         if access is False:
             request.output.write(b'access_denied\n')
+            self.__active = None
+            return
         request.output.write(b'started\n')
 
         request.process = subprocess.Popen(
@@ -389,8 +392,8 @@ with open('/dev/random', 'rb') as f:
     salt_random = f.read(32)
 keys = KeyManager(logger)
 policy = PolicyManager(keys, logger)
-keys.add_user('burunduk3', 'abacabadabacaba')
-policy.add_policy(Policy(user="burunduk3", parameters=["ALLOW_ARGUMENTS"], script='test'))
+keys.add_user(b'burunduk3', b'abacabadabacaba')
+# r = policy.add_policy(Policy(user=b"burunduk3", parameters=["ALLOW_ARGUMENTS"], script=b'test'))
 with Server(logger, keys, policy) as server:
     epoll, queue = Epoll(server), RequestQueue(server)
     server_socket = ServerSocket(server, Connector)
