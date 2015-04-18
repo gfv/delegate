@@ -97,7 +97,7 @@ class Module:
 class Epoll(Module):
     def __init__(self, server):
         super().__init__(server)
-        self.__epoll = select.epoll(flags=select.EPOLL_CLOEXEC)
+        self.__epoll = select.epoll()
         self.__callback = {}
         self.__timeout = 0
         self.__default_timeout = 0.5
@@ -212,7 +212,7 @@ class ServerSocket(Module):
         super().__init__(server)
         self.__connector = connector
         self.__socket = socket.socket(
-            type=socket.SOCK_STREAM | socket.SOCK_CLOEXEC | socket.SOCK_NONBLOCK
+            type=socket.SOCK_STREAM | socket.SOCK_NONBLOCK
         )
         self.__socket.bind(('127.0.0.1', config['port']))
         self.__socket.listen(5)
