@@ -20,13 +20,19 @@ scripts = {
     },
 }
 
-if __name__ == "__main__":
-    print(subprocess.Popen(
-        args=["/bin/date"] + scripts["test_date"]["default_arguments"],
-        executable='/bin/date',
+
+def launch_script(request, policy):
+    if "ALLOW_ARGUMENTS" in policy.parameters and scripts[request.script]["need_arguments"]:
+        arguments = request.arguments
+    else:
+        arguments = []
+    process = subprocess.Popen(
+        args=[request.script] + scripts["test_date"]["default_arguments"] + arguments,
+        executable=request.script,
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
-        # stderr=subprocess.PIPE,
+        stderr=subprocess.PIPE,
         cwd='/'
-    ).stdout.readlines())
+    )
+    return process
 

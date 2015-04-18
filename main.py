@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from config_loader import ConfigLoader
+from scripts import launch_script
 
 __author__ = 'burunduk3'
 
@@ -15,7 +16,7 @@ import sys
 
 from logger import Logger
 from keys import KeyManager
-from policy import PolicyManager, Policy
+from policy import PolicyManager
 from config import config
 
 
@@ -241,9 +242,9 @@ class Request:
 
 salt = b"ahThiodai0ohG1phokoo"
 salt2 = b"Aej1ohv8Naish5Siec3U"
-salt_random = b""
+# salt_random = b""
 connection_id = 0
-keys = None
+# keys = None
 
 class Connector(Module):
     def __init__(self, server, socket):
@@ -364,14 +365,15 @@ class RequestQueue(Module):
             return
         request.output.write(b'started\n')
 
-        request.process = subprocess.Popen(
-            args=[request.script] + request.arguments,
-            executable='/bin/echo',
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd='/'
-        )
+        # request.process = subprocess.Popen(
+        #     args=[request.script] + request.arguments,
+        #     executable='/bin/echo',
+        #     stdin=subprocess.DEVNULL,
+        #     stdout=subprocess.PIPE,
+        #     stderr=subprocess.PIPE,
+        #     cwd='/'
+        # )
+        request.process = launch_script(request, access)
         request.data = b''
         request.stdout = request.process.stdout.detach()
         request.stderr = request.process.stderr.detach()
@@ -395,12 +397,8 @@ with open('/dev/random', 'rb') as f:
 
 keys = KeyManager(logger)
 policy = PolicyManager(keys, logger)
-loader = ConfigLoader(logger,"users", "policies", policy, keys)
+loader = ConfigLoader(logger, "users", "policies", policy, keys)
 loader.read()
-#policy.dump_policies()
-logger(keys.get_users())
-# keys.add_user(b'burunduk3', b'abacabadabacaba')
-# r = policy.add_policy(Policy(user=b"burunduk3", parameters=["ALLOW_ARGUMENTS"], script=b'test'))
 
 with Server(logger, keys, policy) as server:
     epoll, queue = Epoll(server), RequestQueue(server)
