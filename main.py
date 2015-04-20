@@ -11,8 +11,6 @@ import os
 import select
 import signal
 import socket
-import subprocess
-import sys
 
 from logger import Logger
 from keys import KeyManager
@@ -21,10 +19,10 @@ from config import config
 
 
 class Server:
-    def __init__(self, logger, keys, policy):
-        self.log = logger
-        self.keys = keys
-        self.policy = policy
+    def __init__(self, logger1, keys1, policy1):
+        self.log = logger1
+        self.keys = keys1
+        self.policy = policy1
         self.epoll = None
         self.queue = None
         self.__finish = False
@@ -90,13 +88,14 @@ class Server:
 
 
 class Module:
-    def __init__(self, server):
-        self._server = server
+    def __init__(self, server1):
+        self._server = server1
         self._log = lambda *args, **kwargs: self._server.log(*args, **kwargs)
 
+
 class Epoll(Module):
-    def __init__(self, server):
-        super().__init__(server)
+    def __init__(self, server1):
+        super().__init__(server1)
         self.__epoll = select.epoll()
         self.__callback = {}
         self.__timeout = 0
@@ -133,14 +132,14 @@ class Epoll(Module):
 
 
 class ClientSocket(Module):
-    def __init__(self, server, connection, remote_addr, connector):
-        super().__init__(server)
+    def __init__(self, server1, connection, remote_addr, connector):
+        super(ClientSocket, self).__init__(server1)
         self.__connected = True
         self.__socket = connection
         self.__remote_addr = remote_addr
         self.__buffer = b''
         self.__write_buffer = []
-        self.__connector = connector(server, self)
+        self.__connector = connector(server1, self)
 
         self.__socket.setblocking(False)
         self._server.epoll.register(self.__socket, lambda events: self.__handle(events))
@@ -208,8 +207,8 @@ class ClientSocket(Module):
 
 
 class ServerSocket(Module):
-    def __init__(self, server, connector):
-        super().__init__(server)
+    def __init__(self, server1, connector):
+        super(ServerSocket, self).__init__(server1)
         self.__connector = connector
         self.__socket = socket.socket(
             type=socket.SOCK_STREAM | socket.SOCK_NONBLOCK
@@ -225,8 +224,8 @@ class ServerSocket(Module):
             while True:
                 try:
                     client, remote_addr = self.__socket.accept()
-                except BlockingIOError:
-                    break
+                except Exception as e:
+                    self._log(e)
                 self._log("accepted client [%s]: %s" % (remote_addr, client))
                 ClientSocket(self._server, client, remote_addr, self.__connector)
         assert not events
@@ -246,9 +245,10 @@ salt2 = b"Aej1ohv8Naish5Siec3U"
 connection_id = 0
 # keys = None
 
+
 class Connector(Module):
-    def __init__(self, server, socket):
-        super().__init__(server)
+    def __init__(self, server1, socket):
+        super(Connector, self).__init__(server1)
         global connection_id
         self.__id = connection_id
         connection_id += 1
@@ -290,8 +290,8 @@ class Connector(Module):
 
 
 class RequestQueue(Module):
-    def __init__(self, server):
-        super().__init__(server)
+    def __init__(self, server1):
+        super(RequestQueue, self).__init__(server1)
         self._server.queue = self
         self.__queue = []
         self.__active = None
