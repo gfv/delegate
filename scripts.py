@@ -19,11 +19,6 @@ scripts = {
         "need_arguments": False,
         "default_arguments": ["+%s"],
     },
-    "upload": {
-        "cmd_line": "/bin/bash",
-        "need_arguments": False,
-        "default_arguments": ["/root/copy-upload-to-all.sh"],
-    }
 }
 
 

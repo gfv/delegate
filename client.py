@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import hashlib, socket, sys
+import hashlib
+import socket
+import sys
 
-target = "127.0.0.1:2390"
-salt2 = b"Aej1ohv8Naish5Siec3U";
-key_id = b"burunduk3";
-key_value = b"abacabadabacaba";
-# key_value = b"invalid_password";
+target = "10.149.32.33:2390"
+salt2 = b"Aej1ohv8Naish5Siec3U"
+key_id, key_value = open("~/.ssh/passfile").readline().strip().encode().split(":")
 
 host, port = target.split(':', 1)
 port = int(port)
@@ -14,7 +14,8 @@ port = int(port)
 server_buffer = b''
 server = socket.create_connection((host, port))
 
-def query(data = None):
+
+def query(data=None):
     global server, server_buffer
     if data is not None:
         r = 0
@@ -28,14 +29,14 @@ def query(data = None):
             server_buffer += data
             if b'\n' in data:
                 break
-    result, server_buffer = server_buffer.split(b'\n', 1)
-    return result
+    result1, server_buffer = server_buffer.split(b'\n', 1)
+    return result1
 
 hello = query(b'hello')
 result, key = hello.split()
 assert result == b'hello'
 
-command = [b'test', b'123']
+command = [b'upload']
 command_hash = hashlib.sha256(
     key_value + b':' + salt2 + b':' + key + b':' + b'%'.join(command)
 ).hexdigest().encode("ascii")
