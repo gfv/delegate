@@ -1,6 +1,4 @@
 mihver1 : abacaba123aaa
-aaculovich:deeSainojieshaa1eegiHo0seezie4eeZ4jog7Obkeer4kieSh7heex0ahP9
 group sysadm : mihver1
 group nobody :
-group all : mihver1 aaculovich
-group dev : mihver1 aaculovich
+
