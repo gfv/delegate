@@ -4,7 +4,7 @@ import hashlib
 import socket
 import sys
 
-target = "10.149.32.33:2390"
+target = "127.0.0.1:2390"
 salt2 = b"Aej1ohv8Naish5Siec3U"
 key_id, key_value = open(".ssh/passfile").readline().strip().encode().split(b":")
 
