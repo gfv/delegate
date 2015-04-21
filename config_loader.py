@@ -13,40 +13,35 @@ class ConfigLoader:
 
     def read(self):
         try:
-            users_fd = open(self.users_file)
-            policies_fd = open(self.policies_file)
+            users_fd = open(self.users_file, "r")
+            policies_fd = open(self.policies_file, "r")
         except IOError as e:
             pass
         for line in users_fd.readlines():
-            l = line.strip().split(":")
+            l = line.strip().encode().split(b":")
             if len(l) > 2:
                 self.log("More than one ':'?", "E")
                 return
-            if "group" in l[0][0:5]:
-                self.key_manager.add_group(l[0].split(" ")[1])
-                for u in l[1].strip().split(" "):
-                    self.key_manager.add_group_member(u, l[0].split(" ")[1])
+            if b"group" in l[0][0:5]:
+                self.key_manager.add_group(l[0].split(b" ")[1])
+                for u in l[1].strip().split(b" "):
+                    self.key_manager.add_group_member(u, l[0].split(b" ")[1])
             else:
                 self.key_manager.add_user(l[0].strip(), l[1].strip())
         users_fd.close()
 
         for line in policies_fd.readlines():
-            tokens = line.split(" ")
+            tokens = line.strip().encode().split(b" ")
             policy = Policy()
+            policy.parameters = []
             prev_token = None
             for token in tokens:
-                if token[0] == '-':
-                    if token[1] == 'u':
-                        pass
-                    elif token[1] == 'g':
-                        pass
-                    elif token[1] == 'p':
-                        policy.parameters.append(token[2:])
-                else:
-                    if prev_token == '-u':
-                        policy.user = token
-                    elif prev_token == '-g':
-                        policy.group = token
+                if prev_token == b'-u':
+                    policy.user = token
+                elif prev_token == b'-g':
+                    policy.group = token
+                elif prev_token == b'-p':
+                    policy.parameters.append(token)
                 prev_token = token
             policy.script = tokens[-1]
             self.policy_manager.add_policy(policy)

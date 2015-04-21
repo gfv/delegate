@@ -3,7 +3,7 @@ __author__ = 'm'
 
 class Policy:
 
-    def __init__(self, user=None, group=None, parameters=list(), script=None):
+    def __init__(self, user=None, group=None, parameters=None, script=None):
         self.user = user
         self.group = group
         self.parameters = parameters
@@ -60,12 +60,12 @@ class PolicyManager:
         for policy in self.policies:
             result_string = ""
             if policy.user is not None:
-                result_string += "-u %s " % policy.user
+                result_string += "-u %s " % policy.user.decode()
             if policy.group is not None:
-                result_string += "-g %s " % policy.group
+                result_string += "-g %s " % policy.group.decode()
             for param in policy.parameters:
-                result_string += "-p%s " % param
-            result_string += policy.script + "\n"
+                result_string += "-p %s " % param.decode()
+            result_string += policy.script.decode() + "\n"
             print(result_string)
 
     def check_request(self, request):

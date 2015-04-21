@@ -1,3 +1,4 @@
--g sysadm -pALLOW_ARGUMENTS test
+-g sysadm -p ALLOW_ARGUMENTS test
 -u mihver1 test_date
 -u burunduk3 test_date2
+-g sysadm upload
