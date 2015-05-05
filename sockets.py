@@ -45,7 +45,19 @@ class ClientSocket(Module):
                 self.__buffer = data[-1]
 
         if events & select.EPOLLOUT:
-            assert len(self.__write_buffer) == 0
+            while len(self.__write_buffer):
+                try:
+                    r = self.__socket.send(self.__write_buffer[0])
+                except socket.error as why:
+                    if why.args[0] in (socket.EAGAIN, socket.EWOULDBLOCK):
+                        break
+                    else:
+                        raise why
+                assert r > 0
+                if r < len(self.__write_buffer[0])
+                    self.__write_buffer[0] = self.__write_buffer[0][r:]
+                    break
+                self.__write_buffer = self.__write_buffer[1:]
             events &= ~ select.EPOLLOUT
 
         if events & select.EPOLLERR:
@@ -57,7 +69,7 @@ class ClientSocket(Module):
             events &= ~ select.EPOLLHUP
 
         if events:
-            print("unhandled poll events: 0x%04x\n" % events)
+            self.__log("unhandled poll events: 0x%04x\n" % events)
         assert not events
 
     def disconnect(self):
@@ -66,13 +78,22 @@ class ClientSocket(Module):
         self._log("connection #%d closed" % self.__socket.fileno())
         self._server.epoll.unregister(self.__socket)
         self.__socket.close()
+        self.__write_buffer = []
         self.__connected = False
 
     def write(self, data):
+        if len(data) == 0 or not self.__connected:
+            return
         if self.__write_buffer:
             self.__write_buffer.append(data)
             return
-        r = self.__socket.send(data)
+        try:
+            r = self.__socket.send(data)
+        except socket.error as why:
+            if why.args[0] in (socket.EAGAIN, socket.EWOULDBLOCK):
+                r = 0
+            else:
+                raise why
         if r == len(data):
             return
         self.__write_buffer.append(data[r:])
@@ -112,3 +133,5 @@ class ServerSocket(Module):
                 self._log("accepted client [%s]: %s" % (remote_addr, client))
                 ClientSocket(self._server, client, remote_addr, self.__connector)
         assert not events
+        r = self.__socket.send(data)
+
