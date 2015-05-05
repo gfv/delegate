@@ -54,7 +54,7 @@ class ClientSocket(Module):
                     else:
                         raise why
                 assert r > 0
-                if r < len(self.__write_buffer[0])
+                if r < len(self.__write_buffer[0]):
                     self.__write_buffer[0] = self.__write_buffer[0][r:]
                     break
                 self.__write_buffer = self.__write_buffer[1:]
