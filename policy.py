@@ -84,4 +84,3 @@ class PolicyManager:
                     return policy
         self.log("No actual policy rule found", "N", 2)
         return False
-

@@ -16,7 +16,8 @@ class ConfigLoader:
             users_fd = open(self.users_file, "r")
             policies_fd = open(self.policies_file, "r")
         except IOError as e:
-            pass
+            self.log(e, "E")
+            return False
         for line in users_fd.readlines():
             l = line.strip().encode().split(b":")
             if len(l) > 2:

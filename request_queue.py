@@ -59,7 +59,7 @@ class RequestQueue(Module):
             return
         self._server.wake()
         request = self.__queue[0]
-        self.__queue = self.__queue[1:] # TODO: optimize
+        self.__queue = self.__queue[1:]  # TODO: optimize
         yield lambda: self.__run(request)
 
     def __handle(self, handle, events):

@@ -1,6 +1,7 @@
 __author__ = 'm'
 
 config = {
+    'serve': '0.0.0.0',
     'port': 2390,
     'verbosity': 2,
     'salt1': b"ahThiodai0ohG1phokoo",

@@ -89,7 +89,7 @@ class ServerSocket(Module):
         self.__socket = socket.socket(
             type=socket.SOCK_STREAM | socket.SOCK_NONBLOCK
         )
-        self.__socket.bind(('0.0.0.0', config['port']))
+        self.__socket.bind((config["serve"], config['port']))
         self.__socket.listen(5)
         self._server.epoll.register(self.__socket, lambda events: self.__handle(events))
 
