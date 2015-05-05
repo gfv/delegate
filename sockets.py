@@ -133,5 +133,4 @@ class ServerSocket(Module):
                 self._log("accepted client [%s]: %s" % (remote_addr, client))
                 ClientSocket(self._server, client, remote_addr, self.__connector)
         assert not events
-        r = self.__socket.send(data)
 
