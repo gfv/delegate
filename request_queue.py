@@ -103,7 +103,7 @@ class RequestQueue(Module):
         self._server.epoll.register(request.stdout, lambda events: self.__handle(request.stdout, events))
         self._server.epoll.register(request.stderr, lambda events: self.__handle(request.stderr, events))
 
-        self._log("TODO: check and run " + (request.script + b' ' + b' '.join(request.arguments)).decode("iso8859-1"))
+        # self._log("TODO: check and run " + (request.script + b' ' + b' '.join(request.arguments)).decode("iso8859-1"))
         request.output.write(b'LOG: test log, no action\n')
         # request.output.write(b'FINISH\n')
         # self.__active = None
