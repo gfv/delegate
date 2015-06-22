@@ -38,5 +38,7 @@ class Epoll(Module):
                 self._server.wake()
                 self._log("event from epoll#%d for #%d:%d" % (self.__epoll.fileno(), fileno, events), verbosity=3)
                 yield lambda: self.__callback[fileno](events)
-        except InterruptedError:
+        except IOError:
+            # TODO: check if EINTR, exit if not
             pass
+
