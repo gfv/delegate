@@ -6,16 +6,18 @@ from request import Request
 __author__ = 'm'
 
 connection_id = 0
-# salt_random = b""
-
+salt_random = b""
+with open('/dev/random', 'rb') as f:
+    salt_random = f.read(32)
 
 class Connector(Module):
     def __init__(self, server1, socket):
         super(Connector, self).__init__(server1)
         global connection_id  # , salt_random
-        with open('/dev/random', 'rb') as f:
-            self.salt_random = f.read(32)
         self.__id = connection_id
+        self.__salt_random = salt_random
+        with open('/dev/urandom', 'rb') as f:
+            self.__salt_random += f.read(32)
         connection_id += 1
         self.__socket = socket
         self.__local_id = 0
@@ -44,7 +46,7 @@ class Connector(Module):
             self.__socket.write(b"test ok\n")
         elif command[0] == b'hello' and len(command) == 1:
             self.__hash = hashlib.sha256(
-                self.salt1 + self.salt_random + (":%d_%d" % (self.__id, self.__local_id)).encode("ascii")
+                self.salt1 + self.__salt_random + (":%d_%d" % (self.__id, self.__local_id)).encode("ascii")
             ).hexdigest().encode("ascii")
             self.__local_id += 1
             self.__socket.write(b"hello " + self.__hash + b"\n")
@@ -52,3 +54,4 @@ class Connector(Module):
             self.__run(command[1], command[2], command[3:])
         else:
             self.__socket.write(b"unknown command: " + command[0] + b"\n")
+

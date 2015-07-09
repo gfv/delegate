@@ -12,8 +12,8 @@ class Epoll(Module):
         self.__timeout = 0
         self.__default_timeout = 0.5
         self._server.epoll = self
-        self._server.action_add(lambda: self.poll())
-        self._server.action_sleep_add(lambda: self.sleep())
+        self._server.action_add(self._continue(self.poll, ()))
+        self._server.action_sleep_add(self._continue(self.sleep, ()))
 
     def sleep(self):
         self.__timeout = self.__default_timeout
@@ -33,11 +33,12 @@ class Epoll(Module):
     def poll(self):
         self._log("poll from epoll#%d" % self.__epoll.fileno(), verbosity=4)
         try:
-            for fileno, events in self.__epoll.poll(self.__timeout):
+            for fileno, events in self.__epoll.poll(timeout=self.__timeout):
                 self.__timeout = 0
                 self._server.wake()
                 self._log("event from epoll#%d for #%d:%d" % (self.__epoll.fileno(), fileno, events), verbosity=3)
-                yield lambda: self.__callback[fileno](events)
+
+                yield self._continue(self.__callback[fileno], (events ,))
         except IOError:
             # TODO: check if EINTR, exit if not
             pass

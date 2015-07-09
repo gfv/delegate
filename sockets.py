@@ -19,9 +19,12 @@ class ClientSocket(Module):
         self.__socket.setblocking(False)
         self._server.epoll.register(self.__socket, lambda events: self.__handle(events))
 
-    def __handle(self, events):
-        assert events
-        if events & select.EPOLLIN:
+    def handle_all(self):
+        yield self._continue(self.__handle, (0, True))
+
+    def __handle(self, events, check_all=False):
+        assert events or check_all
+        if events & select.EPOLLIN or check_all:
             events &= ~ select.EPOLLIN
             while True:
                 try:
@@ -40,11 +43,11 @@ class ClientSocket(Module):
 
                 data = data.split(b'\n')
                 for chunk in data[:-1]:
-                    yield lambda: self.execute(self.__buffer + chunk)
+                    yield self._continue(self.execute, (self.__buffer + chunk ,))
                     self.__buffer = b''
                 self.__buffer = data[-1]
 
-        if events & select.EPOLLOUT:
+        if events & select.EPOLLOUT or check_all:
             while len(self.__write_buffer):
                 try:
                     r = self.__socket.send(self.__write_buffer[0])
@@ -118,19 +121,26 @@ class ServerSocket(Module):
         assert events
         if events & select.EPOLLIN:
             events &= ~ select.EPOLLIN
+            self._log("ServerSocket.__handle", "L", 3)
             while True:
                 try:
+                    self._log("[debug] before try", "L", 3)
                     client, remote_addr = self.__socket.accept()
+                    self._log("[debug] after try", "L", 3)
                 except socket.error as why:
                     if why.args[0] in (socket.EAGAIN, socket.EWOULDBLOCK):
+                        self._log("no more from server socket", "L", 3)
                         break
                     else:
                         self._log("unknown socket error: " + str(why))
                         raise why
-                except Exception as e:
-                    self._log(e, "E")
-                    break
+                # except Exception as e:
+                #     self._log(e, "E")
+                #     break
                 self._log("accepted client [%s]: %s" % (remote_addr, client))
-                ClientSocket(self._server, client, remote_addr, self.__connector)
+                client = ClientSocket(self._server, client, remote_addr, self.__connector)
+                self._log("[debug] ClientSocket created", "L", 3)
+                yield self._continue(client.handle_all, ())
+                self._log("[debug] post-action added", "L", 3)
         assert not events
 

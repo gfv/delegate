@@ -1,5 +1,6 @@
 import itertools
 import signal
+import queue
 
 __author__ = 'm'
 
@@ -9,7 +10,6 @@ class Server:
         self.log = logger1
         self.keys = keys1
         self.policy = policy1
-        self.epoll = None
         self.queue = None
         self.__finish = False
         self.__sleep = False
@@ -30,6 +30,7 @@ class Server:
             self.log.reopen()
             # self.log("logs rotated")
         elif signo == signal.SIGCHLD:
+            self.log.reopen()
             self.wake()
             # self.log("caught SIGCHLD, ignore it")
         else:
@@ -46,20 +47,26 @@ class Server:
         self.__sleep = False
 
     def run(self):
-        actions = []
+        actions = queue.Queue()
         try:
             while True:
-                actions = list(actions)
-                if not actions:
+                self.log("actions queue: %d" % actions.qsize(), "L", 4)
+                if actions.empty():
                     if self.__finish:
                         break
                     if self.__sleep:
-                        actions.extend(self.__actions_sleep)
+                        for x in self.__actions_sleep:
+                            actions.put(x)
                     self.__sleep = True
-                    actions.extend(self.__actions_start)
-                self.log("actions: %s" % actions, verbosity=5)
-                continuations = [action() for action in actions]
-                actions = itertools.chain(*filter(lambda x: x is not None, continuations))
+                    for x in self.__actions_start:
+                        actions.put(x)
+                    continue
+                action = actions.get()
+                result = action()
+                if result is None:
+                    continue
+                for x in result:
+                    actions.put(x)
         except KeyboardInterrupt:
             self.log("[Ctrl+C]")
         self.log("TODO: graceful exit (close all sockets etc)")
@@ -71,3 +78,4 @@ class Server:
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
         signal.signal(signal.SIGUSR1, signal.SIG_DFL)
         self.log("TODO: close all sockets")
+

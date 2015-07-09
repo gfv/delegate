@@ -5,9 +5,9 @@ __author__ = 'm'
 
 scripts = {
     "test": {
-        "cmd_line": "/bin/echo",
+        "cmd_line": "/bin/sleep",
         "need_arguments": True,
-        "default_arguments": [],
+        "default_arguments": ["5"],
     },
     "test_date": {
         "cmd_line": "/bin/date",

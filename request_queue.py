@@ -13,12 +13,14 @@ class RequestQueue(Module):
         self._server.queue = self
         self.__queue = []
         self.__active = None
-        self._server.action_add(lambda: self.run_next())
+        self._server.action_add(self._continue(self.run_next, ()))
 
     def append(self, request):
         self.__queue.append(request)
+        self._log("New request, in queue: %d" % len(self.__queue), "L", 2)
 
     def __communicate(self, handle = None):
+        assert self.__active
         if handle is None:
             for x in [self.__active.stdout, self.__active.stderr]:
                 self.__communicate(x)
@@ -30,9 +32,9 @@ class RequestQueue(Module):
             #     data = None
             # except BlockingIOError:
             #     break
-            self._log("read: '%s'" % str(data))
             if data is None or not data:
                 break
+            self._log("read: '%s'" % str(data))
             assert data
             self._log("received from process: %s" % (' '.join('%02x' % x for x in data)),
                       verbosity=3)
@@ -51,29 +53,41 @@ class RequestQueue(Module):
             self._server.wake()
             self.__communicate()
             if self.__active.data:
-                self.__active.output.write(self.__active.data + b'%[noeoln]\n')
+                self.__active.output.write(b'LOG: ' + self.__active.data + b'%[noeoln]\n')
             self.__active.output.write(b'FINISH\n')
+            self._log('Active cleared, in queue: %d' % len(self.__queue), "L", 3)
+            self._server.epoll.unregister(self.__active.stdout)
+            self._server.epoll.unregister(self.__active.stderr)
+            self.__active.stdout.close()
+            self.__active.stderr.close()
             self.__active = None
             return
-        if self.__active is not None or len(self.__queue) == 0:
+        assert self.__active is None
+        if len(self.__queue) == 0:
             return
         self._server.wake()
         request = self.__queue[0]
         self.__queue = self.__queue[1:]  # TODO: optimize
-        yield lambda: self.__run(request)
+        yield self._continue(self.__run, (request ,))
 
     def __handle(self, handle, events):
+        assert events
         if events & select.EPOLLIN:
+            assert self.__active
             events &= ~ select.EPOLLIN
             self.__communicate(handle)
         if events & select.EPOLLHUP:
             events &= ~ select.EPOLLHUP
-            yield lambda: self.run_next()
+            yield self._continue(self.run_next, ())
         if events:
             print("unhandled poll events: 0x%04x\n" % events)
         assert not events
 
     def __run(self, request):
+        if self.__active is not None:
+            self.__queue.append(request)
+            return
+        assert self.__active is None
         self.__active = request
         access = self._server.policy.check_request(request)
         if access is False:

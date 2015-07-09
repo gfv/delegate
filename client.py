@@ -6,7 +6,7 @@ import sys
 
 target = "127.0.0.1:2390"
 salt2 = b"Aej1ohv8Naish5Siec3U"
-key_id, key_value = open(".ssh/passfile").readline().strip().encode().split(b":")
+key_id, key_value = open("~/.ssh/passfile").readline().strip().encode().split(":")
 
 host, port = target.split(':', 1)
 port = int(port)
