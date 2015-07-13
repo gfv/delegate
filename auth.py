@@ -54,4 +54,3 @@ class Connector(Module):
             self.__run(command[1], command[2], command[3:])
         else:
             self.__socket.write(b"unknown command: " + command[0] + b"\n")
-

@@ -78,4 +78,3 @@ class Server:
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
         signal.signal(signal.SIGUSR1, signal.SIG_DFL)
         self.log("TODO: close all sockets")
-

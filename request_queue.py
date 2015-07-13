@@ -17,15 +17,17 @@ class RequestQueue(Module):
 
     def append(self, request):
         self.__queue.append(request)
-        self._log("New request, in queue: %d" % len(self.__queue), "L", 2)
+        self._log("New request, in queue: %d" % len(self.__queue))
 
     def __communicate(self, handle = None):
-        assert self.__active
         if handle is None:
+            assert self.__active is not None
             for x in [self.__active.stdout, self.__active.stderr]:
                 self.__communicate(x)
             return
         while True:
+            if self.__active is None:
+                return
             # try:
             data = handle.read()
             # except ConnectionResetError:
@@ -73,7 +75,6 @@ class RequestQueue(Module):
     def __handle(self, handle, events):
         assert events
         if events & select.EPOLLIN:
-            assert self.__active
             events &= ~ select.EPOLLIN
             self.__communicate(handle)
         if events & select.EPOLLHUP:
