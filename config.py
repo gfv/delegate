@@ -10,3 +10,20 @@ config = {
     'path_to_policies': 'policies',
 }
 
+scripts = {
+    "test": {
+        "cmd_line": "/bin/sleep",
+        "need_arguments": True,
+        "default_arguments": ["5"],
+    },
+    "test_date": {
+        "cmd_line": "/bin/date",
+        "need_arguments": False,
+        "default_arguments": [],
+    },
+    "test_date2": {
+        "cmd_line": "/bin/date",
+        "need_arguments": False,
+        "default_arguments": ["+%s"],
+    },
+}
