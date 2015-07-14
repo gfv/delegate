@@ -79,7 +79,8 @@ class PolicyManager:
                 return policy
             elif policy.group is not None:
                 groups = self.key_manager.get_user_groups(user_to_check)
-                if policy.group in groups:
-                    return policy
+                if groups is not None:
+                    if policy.group in groups:
+                        return policy
         self.log("No actual policy rule found", "E", 2)
         return False
