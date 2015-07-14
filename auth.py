@@ -3,7 +3,7 @@ from config import config
 from module import Module
 from request import Request
 
-__author__ = 'm'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 connection_id = 0
 salt_random = b""
@@ -28,14 +28,14 @@ class Connector(Module):
     def __run(self, command_key, command_hash, command_run):
         user_key = self._server.keys.get_user_key(command_key)
         if user_key is None:
-            return self.__socket.write(b'unauthorized\n')
+            return self.__socket.write(b'Unauthorized\n')
         real_key = user_key
         real_hash = hashlib.sha256(
             real_key + b':' + self.salt2 + b':' + self.__hash + b':' + b'%'.join(command_run)
         ).hexdigest().encode("ascii")
         self.__hash = None
         if command_hash != real_hash:
-            return self.__socket.write(b'unauthorized\n')
+            return self.__socket.write(b'Unauthorized\n')
         self._server.queue.append(Request(command_key, command_run[0], command_run[1:], self.__socket))
 
     def __call__(self, command):

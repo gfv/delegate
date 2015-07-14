@@ -1,8 +1,7 @@
-import itertools
 import signal
 import queue
 
-__author__ = 'm'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 
 class Server:
@@ -34,7 +33,7 @@ class Server:
             self.wake()
             # self.log("caught SIGCHLD, ignore it")
         else:
-            self.log("unknown signal: %d" % signo)
+            self.log("unknown signal: %d" % signo, "E")
             self.__finish = True
 
     def action_add(self, action):

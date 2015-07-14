@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
+
 import hashlib
 import socket
 import sys

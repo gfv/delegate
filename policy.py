@@ -1,5 +1,4 @@
-__author__ = 'm'
-
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 class Policy:
 
@@ -82,5 +81,5 @@ class PolicyManager:
                 groups = self.key_manager.get_user_groups(user_to_check)
                 if policy.group in groups:
                     return policy
-        self.log("No actual policy rule found", "N", 2)
+        self.log("No actual policy rule found", "E", 2)
         return False

@@ -1,4 +1,4 @@
-__author__ = 'mihver1'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 import sys
 import datetime
 

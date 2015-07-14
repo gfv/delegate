@@ -2,7 +2,7 @@ import subprocess
 from config import scripts
 import os
 
-__author__ = 'm'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 # config file for scripts
 
 def launch_script(request, policy):

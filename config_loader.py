@@ -1,6 +1,6 @@
 from policy import Policy
 
-__author__ = 'm'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 
 class ConfigLoader:
@@ -21,7 +21,7 @@ class ConfigLoader:
         for line in users_fd.readlines():
             l = line.strip().encode().split(b":")
             if len(l) > 2:
-                self.log("More than one ':'?", "E")
+                self.log("More than one ':' while parsing users file?", "E")
                 return
             if b"group" in l[0][0:5]:
                 self.key_manager.add_group(l[0].split(b" ")[1])

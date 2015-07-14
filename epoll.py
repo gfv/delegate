@@ -1,7 +1,7 @@
 import select
 from module import Module
 
-__author__ = 'm'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 
 class Epoll(Module):
@@ -31,12 +31,12 @@ class Epoll(Module):
         del self.__callback[fileno]
 
     def poll(self):
-        self._log("poll from epoll#%d" % self.__epoll.fileno(), verbosity=4)
+        self._log("poll from epoll#%d" % self.__epoll.fileno(), verbosity=5)
         try:
             for fileno, events in self.__epoll.poll(timeout=self.__timeout):
                 self.__timeout = 0
                 self._server.wake()
-                self._log("event from epoll#%d for #%d:%d" % (self.__epoll.fileno(), fileno, events), verbosity=3)
+                self._log("event from epoll#%d for #%d:%d" % (self.__epoll.fileno(), fileno, events), verbosity=4)
 
                 yield self._continue(self.__callback[fileno], (events ,))
         except IOError:

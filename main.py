@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-__author__ = '''vk ops crew'''
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 from config import config
 
@@ -32,6 +32,6 @@ if __name__ == "__main__":
     with Server(logger, keys, policy) as server:
         epoll, queue = Epoll(server), RequestQueue(server)
         server_socket = ServerSocket(server, Connector)
-        logger("server started")
+        logger("Server started")
         server.run()
 

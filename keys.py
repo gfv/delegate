@@ -1,4 +1,4 @@
-__author__ = 'mihver1'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 
 class KeyManager:
@@ -12,7 +12,7 @@ class KeyManager:
             self.log("Already has user %s" % name, "W")
             return False
         else:
-            self.log("Added new user %s" % name)
+            self.log("Added new user %s" % name, "L", 2)
             self.__users__[name] = {"key": secret}
             return True
 
@@ -28,7 +28,7 @@ class KeyManager:
 
     def get_user_key(self, name):
         if name in self.__users__:
-            self.log("Requested key for %s" % name, "N", 3)
+            self.log("Requested key for %s" % name, "L", 3)
             return self.__users__[name]["key"]
         else:
             self.log("Requested key for non-existing %s" % name, "E")
@@ -36,7 +36,7 @@ class KeyManager:
 
     def get_user_groups(self, name):
         if name in self.__users__:
-            self.log("Requested groups for %s" % name, "N", 3)
+            self.log("Requested groups for %s" % name, "L", 3)
             if "groups" in self.__users__[name]:
                 return self.__users__[name]["groups"]
             else:
@@ -60,20 +60,20 @@ class KeyManager:
                 if "groups" not in self.__users__[username]:
                     self.__users__[username]["groups"] = list()
                 self.__users__[username]["groups"].append(groupname)
-                self.log("Added %s to %s" % (username, groupname))
+                self.log("Added %s to %s" % (username, groupname), "L", 2)
                 return True
             else:
-                self.log("Has no group %s" % groupname)
+                self.log("Has no group %s" % groupname, "E")
                 return False
         else:
-            self.log("Has no user %s" % username)
+            self.log("Has no user %s" % username, "E")
             return False
 
     def remove_group_member(self, username, groupname):
         if username in self.__users__:
             if groupname in self.__groups__:
                 if username in self.__groups__[groupname]:
-                    self.log("Removing %s from %s" % (username, groupname), "N")
+                    self.log("Removing %s from %s" % (username, groupname), "N", 2)
                     self.__users__[username]["groups"].remove(groupname)
                     self.__groups__[groupname].remove(username)
                     return True
@@ -95,3 +95,6 @@ class KeyManager:
 
     def has_group(self, groupname):
         return groupname in self.__groups__
+
+    def has_user(self, username):
+        return username in self.__users__

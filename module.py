@@ -1,4 +1,4 @@
-__author__ = 'm'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 
 class Module:

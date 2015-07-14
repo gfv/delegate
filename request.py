@@ -1,5 +1,4 @@
-__author__ = 'm'
-
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 class Request:
     def __init__(self, key, script, arguments, output):

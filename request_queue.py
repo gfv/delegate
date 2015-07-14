@@ -4,7 +4,7 @@ import select
 from module import Module
 from scripts import launch_script
 
-__author__ = 'm'
+__author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 
 class RequestQueue(Module):
@@ -51,13 +51,13 @@ class RequestQueue(Module):
             finished = self.__active.process.poll()
             if finished is None:
                 return
-            self._log('subprocess poll: %s' % str(finished))
+            self._log('subprocess poll: %s' % str(finished), "D", 3)
             self._server.wake()
             self.__communicate()
             if self.__active.data:
                 self.__active.output.write(b'LOG: ' + self.__active.data + b'%[noeoln]\n')
             self.__active.output.write(b'FINISH\n')
-            self._log('Active cleared, in queue: %d' % len(self.__queue), "L", 3)
+            self._log('Active cleared, in queue: %d' % len(self.__queue), "D", 3)
             self._server.epoll.unregister(self.__active.stdout)
             self._server.epoll.unregister(self.__active.stderr)
             self.__active.stdout.close()
@@ -81,7 +81,7 @@ class RequestQueue(Module):
             events &= ~ select.EPOLLHUP
             yield self._continue(self.run_next, ())
         if events:
-            print("unhandled poll events: 0x%04x\n" % events)
+            self._log("unhandled poll events: 0x%04x\n" % events, "D", 3)
         assert not events
 
     def __run(self, request):
@@ -96,19 +96,8 @@ class RequestQueue(Module):
             self.__active = None
             return
         request.output.write(b'started\n')
-
-        # request.process = subprocess.Popen(
-        #     args=[request.script] + request.arguments,
-        #     executable='/bin/echo',
-        #     stdin=subprocess.DEVNULL,
-        #     stdout=subprocess.PIPE,
-        #     stderr=subprocess.PIPE,
-        #     cwd='/'
-        # )
         request.process = launch_script(request, access)
         request.data = b''
-        # request.stdout = request.process.stdout.detach()
-        # request.stderr = request.process.stderr.detach()
         request.stdout = request.process.stdout
         request.stderr = request.process.stderr
         fl = fcntl.fcntl(request.stdout, fcntl.F_GETFL)
@@ -118,8 +107,4 @@ class RequestQueue(Module):
         self._server.epoll.register(request.stdout, lambda events: self.__handle(request.stdout, events))
         self._server.epoll.register(request.stderr, lambda events: self.__handle(request.stderr, events))
 
-        # self._log("TODO: check and run " + (request.script + b' ' + b' '.join(request.arguments)).decode("iso8859-1"))
-        # request.output.write(b'LOG: test log, no action\n')
-        # request.output.write(b'FINISH\n')
-        # self.__active = None
 
