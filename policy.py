@@ -1,3 +1,5 @@
+import config
+
 __author__ = 'VK OPS CREW <ncc(at)vk.com>'
 
 class Policy:
@@ -39,6 +41,9 @@ class PolicyManager:
             return False
         if policy.script is None:
             self.log("You should specify script to launch", "E")
+            return False
+        if policy.script not in config.scripts:
+            self.log("Can not find script %s" % policy.script, "E")
             return False
         if policy.user in self.users:
             self.users[policy.user].append(policy)

@@ -1,3 +1,4 @@
+from config import config
 from policy import Policy
 
 __author__ = 'VK OPS CREW <ncc(at)vk.com>'
@@ -20,9 +21,10 @@ class ConfigLoader:
             return False
         for line in users_fd.readlines():
             l = line.strip().encode().split(b":")
+            # TODO: move this check somewhere else
             if len(l) > 2:
                 self.log("More than one ':' while parsing users file?", "E")
-                return
+                return False
             if b"group" in l[0][0:5]:
                 self.key_manager.add_group(l[0].split(b" ")[1])
                 for u in l[1].strip().split(b" "):
@@ -31,7 +33,9 @@ class ConfigLoader:
                 self.key_manager.add_user(l[0].strip(), l[1].strip())
         users_fd.close()
 
+        cnt = 0
         for line in policies_fd.readlines():
+            cnt += 1
             tokens = line.strip().encode().split(b" ")
             policy = Policy()
             policy.parameters = []
@@ -44,6 +48,6 @@ class ConfigLoader:
                 elif prev_token == b'-p':
                     policy.parameters.append(token)
                 prev_token = token
-            policy.script = tokens[-1]
-            self.policy_manager.add_policy(policy)
+            if not self.policy_manager.add_policy(policy):
+                self.log("    File %s line %d" % (config["path_to_policies"], cnt), "E")
         policies_fd.close()
