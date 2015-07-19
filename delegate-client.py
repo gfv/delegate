@@ -7,7 +7,7 @@ from os.path import expanduser
 import argparse
 
 __author__ = 'mihver1'
-hash2 = b"Aej1ohv8Naish5Siec3U"
+salt2 = b"Aej1ohv8Naish5Siec3U"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("target", help="host and port of delegate server you want to connect", metavar="host:port")
@@ -26,7 +26,7 @@ if not os.path.isfile(path_to_passfile):
     print("Can't find passfile: %s" % path_to_passfile)
     sys.exit(1)
 
-key_id, key_value = open(path_to_passfile).readline().strip().split(":")
+key_id, key_value = open(path_to_passfile).readline().strip().encode().split(b":")
 
 target = args.target
 host, port = target.split(':', 1)
