@@ -76,5 +76,5 @@ while True:
         break
     if log.startswith(b'LOG: '):
         log = log[5:]
-    print(log.decode('iso8859-1'))
+    print(log.decode("utf-8"))
 
