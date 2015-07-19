@@ -57,8 +57,9 @@ result, key = hello.split()
 assert result == b'hello'
 
 command = [args.script.encode()]
-for i in args.params:
-    command.append(i.encode())
+if args.params:
+    for i in args.params:
+        command.append(i.encode())
 
 command_hash = hashlib.sha256(
     key_value + b':' + salt2 + b':' + key + b':' + b'%'.join(command)
