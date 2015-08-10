@@ -48,6 +48,7 @@ class ConfigLoader:
                 elif prev_token == b'-p':
                     policy.parameters.append(token)
                 prev_token = token
+            policy.script = tokens[-1]
             if not self.policy_manager.add_policy(policy):
                 self.log("    File %s line %d" % (config["path_to_policies"], cnt), "E")
         policies_fd.close()
