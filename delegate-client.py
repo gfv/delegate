@@ -14,7 +14,7 @@ parser.add_argument("target", help="host and port of delegate server you want to
 parser.add_argument("script", help="name of the script you want to launch")
 parser.add_argument("-i", help="override default path to passfile", metavar="path/to/passfile")
 parser.add_argument("params", help="parameters to script if applicable", metavar="params", nargs="?")
-args = parser.parse_args()
+args, unknown_args = parser.parse_known_args()
 
 if args.i:
     path_to_passfile = args.i
@@ -59,6 +59,10 @@ assert result == b'hello'
 command = [args.script.encode()]
 if args.params:
     for i in args.params:
+        command.append(i.encode())
+
+if unknown_args:
+    for i in unknown_args:
         command.append(i.encode())
 
 command_hash = hashlib.sha256(
